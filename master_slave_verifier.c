@@ -37,39 +37,20 @@
 /*
 * create the struct which encapsulates each server config in replica set
 */
-struct rs_server
+struct ms_server
 {
   char address[MAXLEN];
   char port[MAXLEN];
 }
-  rs_server;
-
-/*
-* create the struct which encapsulates the standalone replica set config
-*/
-struct replica_set
-{
-  char name[MAXLEN];
-  char number_of_servers[MAXLEN];
-}
-  replica_set;
+  ms_server;
 
 /*
  * initialize one instance of server with default values
  */
 void
-initiate_rs_server (struct rs_server * server){
+master_server (struct ms_server * server){
   strncpy (server->address, "127.0.0.1", MAXLEN);
   strncpy (server->port, "27017", MAXLEN);
-}
-
-/*
- * initialize one instance of replica_set with default values
- */
-void
-initiate_replica_set (struct replica_set * replica){
-  strncpy (replica->name, "rs", MAXLEN);
-  strncpy (replica->number_of_servers, "0", MAXLEN);
 }
 
 
@@ -101,7 +82,7 @@ char *trim(char *str){
  *  get replica set configuration
  */
 void
-replica_config (struct replica_set * replica, FILE *logger)
+replica_config (struct ms_server * server, FILE *logger)
 {
   char *s, buff[256];
   FILE *fp = fopen (CONFIG_FILE, "r");
@@ -126,72 +107,15 @@ replica_config (struct replica_set * replica, FILE *logger)
     else
       strncpy (value, s, MAXLEN);
     trim (value);
-    if (strcmp(name, "number_of_servers" )==0){
-      strncpy (replica->number_of_servers, value, MAXLEN);
-    }else if (strcmp(name, "name" )==0){
-      strncpy (replica->name, value, MAXLEN);
+    if (strcmp(name, "address" )==0){
+      strncpy (server->address, value, MAXLEN);
+    }else if (strcmp(name, "port" )==0){
+      strncpy (server->port, value, MAXLEN);
     }
   }
   fclose (fp);
 }
 
-
-
-/*
- * create array of servers of replica set
- */
-void
-parse_config (struct rs_server *servers, int number_of_servers)
-{
-  char *s, buff[256], *a;
-  FILE *fp = fopen (CONFIG_FILE, "r");
-  int counter = 0;
-  if (fp == NULL)
-  {
-    return;
-  }
-  while ((s = fgets (buff, sizeof buff, fp)) != NULL)
-  {
-    if (buff[0] == '\n' || buff[0] == '#')
-      continue;
-    char name[MAXLEN], value[MAXLEN];
-    s = strtok (buff, "=");
-    if (s==NULL)
-      continue;
-    else
-      strncpy (name, s, MAXLEN);
-    s = strtok (NULL, "=");
-    if (s==NULL)
-      continue;
-    else
-      strncpy (value, s, MAXLEN);
-    trim (value);
-    if (strcmp(name, "path")==0){
-      char address[MAXLEN], port[MAXLEN];
-      a = strtok (value, ":");
-
-      if (a==NULL)
-        continue;
-      else
-        strncpy (address, a, MAXLEN);
-      a = strtok (NULL, ":");
-      if (a==NULL)
-        continue;
-      else
-        strncpy (port, a, MAXLEN);
-      trim (port);
-      strncpy (servers[counter].address, address, MAXLEN);
-      strncpy (servers[counter].port, port, MAXLEN);
-      counter++;
-      if (counter >= number_of_servers){
-        return;
-      }
-    }
-    else
-      printf ("WARNING: %s/%s: Unknown name/value pair!\n",name, value);
-  }
-  fclose (fp);
-}
 
 int main(int argc, char* argv[]){
     /*------------------- Daemonize -------------------*/
@@ -236,16 +160,10 @@ int main(int argc, char* argv[]){
     fp = fopen ("/var/log/master_slave_verifier.log", "w+");
 
     /*------------------- Config Parser -------------------*/    
-    struct replica_set replica;
+    struct ms_server server;
 
-    initiate_replica_set(&replica);
-    replica_config (&replica, fp);
+    replica_config (&server, fp);
 
-    fprintf(fp, "Replica set name: %s Number of servers: %d \n", replica.name, atoi(replica.number_of_servers));
-
-    struct rs_server servers[atoi(replica.number_of_servers)];
-
-    parse_config (servers, atoi(replica.number_of_servers));
 
     /*------------------- Mongo Connection -------------------*/    
     // Mongo connection
@@ -254,39 +172,27 @@ int main(int argc, char* argv[]){
     int timer = 0;
     int TIMEOUT = 5;
 
-    mongo_replica_set_init( conn, replica.name );
-    // mongo_destroy( conn );
-    // mongo_replica_set_init( conn, "rs" );
-    int j;
-    for(j = 0; j < atoi(replica.number_of_servers); j++)
-    {
-        fprintf(fp, "|%s:%d|\n", servers[j].address, atoi(servers[j].port));
-        const char *temp_address = servers[j].address;
-        mongo_replica_set_add_seed( conn, temp_address, 27017 );
-    }
 
     // Trying to establish the connection
-    status = mongo_replica_set_client( conn );
+    status = mongo_client(conn,server.address, atoi(server.port));
     fprintf(fp, "%d\n", status);
     while(status != MONGO_OK){
       switch ( conn->err ) {
-        case MONGO_CONN_NO_SOCKET:    fprintf(fp, "no socket\n" ); break;
-        case MONGO_CONN_FAIL:         fprintf(fp, "connection failed\n" ); break;
-        case MONGO_CONN_ADDR_FAIL:    fprintf(fp, "error occured while calling getaddrinfo().\n" ); break;
-        case MONGO_CONN_BAD_SET_NAME: fprintf(fp, "Given rs name doesn't match this replica set.\n" ); break;
-        case MONGO_CONN_NO_PRIMARY:   fprintf(fp, "Can't find primary in replica set.\n" ); break;
-        case MONGO_CONN_NOT_MASTER:   fprintf(fp, "not master\n" ); break;
+        case MONGO_CONN_NO_SOCKET: printf("NO SOCKET\n"); break;  /**< Could not create a socket. */
+        case MONGO_CONN_FAIL: printf("CONN FAIL\n"); break;       /**< An error occured while calling connect(). */
+        case MONGO_CONN_ADDR_FAIL: printf("CON ADDR FAIL\n"); break;  /**< An error occured while calling getaddrinfo(). */
+        case MONGO_CONN_NOT_MASTER: printf("CONN NOT MASTER\n"); break; /**< Warning: connected to a non-master node (read-only). */
       }
       fflush(fp);
       fprintf(fp,"Checking the connection... status( %d )\n", status);
       sleep(TIMEOUT);  
-      status = mongo_replica_set_client( conn );  
+      status = mongo_client(conn,server.address, atoi(server.port)); 
     }  
     fflush(fp);
     fprintf(fp, "connection OK!.\n" );
     fprintf(fp, "Setting token.\n" );
     // Open a token file in write mode.
-    token = fopen ("/tmp/token.rsv", "w+");
+    token = fopen ("/tmp/token.msv", "w+");
     fprintf(token, "true");
     fflush(token);
     mongo_destroy( conn );

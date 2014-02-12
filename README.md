@@ -1,7 +1,7 @@
 Replica Set Verifier
 ====================
 
-RSV is a unix service that checks if your replica set is running, this chunk of code is based on C.
+RSV is a unix service that checks if your master slave replica is running, this chunk of code is based on C.
 
 ####SAMPLE BUILD:
 

@@ -4,9 +4,7 @@
 # mongodb verifier service                                    #
 #                                                             #
 ###############################################################
-[NAME]
-name=rs
-number_of_servers=
 
-[SERVERS]
-path=
+[SERVER]
+master=
+port=

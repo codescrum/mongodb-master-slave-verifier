@@ -5,7 +5,7 @@ trigger() {
 	TOKEN=true
 	while : ; do
 	    sleep 1
-	    if grep -Fxq "$TOKEN" /tmp/token.rsv
+	    if grep -Fxq "$TOKEN" /tmp/token.msv
 		then
 		    READY=true
 		else
@@ -15,7 +15,7 @@ trigger() {
 	    ! $READY || break
 	done
 	echo "$PID"
-	echo "" > /tmp/token.rsv	
+	echo "" > /tmp/token.msv	
 	echo "ready to launch.."
 	service unicorn_sardjv start
 	service resque start
