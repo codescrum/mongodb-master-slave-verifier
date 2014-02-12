@@ -2,23 +2,23 @@
  * Replica Set Verifier: check if your replica set is running
  *
  * SAMPLE BUILD:
- * gcc --std=c99 -I/usr/local/include -L/usr/local/lib -o replica_set_verifier replica_set_verifier.c -lmongoc
+ * gcc --std=c99 -I/usr/local/include -L/usr/local/lib -o master_slave_verifier master_slave_verifier.c -lmongoc
  *
  * REQUIREMENTS:
  * LIBBSON 0.4.0
  * MONGO-C-DRIVER 0.8.1
  * 
  * CONFIG FILE:
- * replica_set_verifier.conf 
+ * master_slave_verifier.conf 
  *
  * EXECUTE:
- * sudo ./replica_set_verifier
+ * sudo ./master_slave_verifier
  * 
  * OUTPUT FILES:
- * replica_set_verifier (bin)
+ * master_slave_verifier (bin)
  *
- * OUTPUT FILES (when replica_set_verifier is excuted):
- * replica_set_verifier.log (/var/log)
+ * OUTPUT FILES (when master_slave_verifier is excuted):
+ * master_slave_verifier.log (/var/log)
  * replica_set_verfier.pid
  *
  */
@@ -32,7 +32,7 @@
 #include "mongo.h"
 
 #define MAXLEN 80
-#define CONFIG_FILE "/etc/replica_set_verifier.conf"
+#define CONFIG_FILE "/etc/master_slave_verifier.conf"
 
 /*
 * create the struct which encapsulates each server config in replica set
@@ -107,7 +107,7 @@ replica_config (struct replica_set * replica, FILE *logger)
   FILE *fp = fopen (CONFIG_FILE, "r");
   if (fp == NULL)
   {
-    fprintf(logger, "/etc/replica_set_verifier.conf: no such file...");
+    fprintf(logger, "/etc/master_slave_verifier.conf: no such file...");
     return;
   }
   while ((s = fgets (buff, sizeof buff, fp)) != NULL)
@@ -212,7 +212,7 @@ int main(int argc, char* argv[]){
     if (process_id > 0){
         printf("process_id of child process %d \n", process_id); 
         // Create a file with pid into itself
-        pid_file = fopen ("/tmp/replica_set_verifier.pid", "w+");
+        pid_file = fopen ("/tmp/master_slave_verifier.pid", "w+");
         fprintf(pid_file, "%d", process_id);
         fflush(pid_file);
         // return success in exit status
@@ -233,7 +233,7 @@ int main(int argc, char* argv[]){
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
     // Open a log file in write mode.
-    fp = fopen ("/var/log/replica_set_verifier.log", "w+");
+    fp = fopen ("/var/log/master_slave_verifier.log", "w+");
 
     /*------------------- Config Parser -------------------*/    
     struct replica_set replica;

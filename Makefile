@@ -6,7 +6,7 @@ LDIR =/usr/local/lib
 
 LIBS=-lmongoc
 
-OBJ=replica_set_verifier.c
+OBJ=master_slave_verifier.c
 OBJ_=$(basename $(OBJ))
 
 MKFILE_PATH = $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -15,7 +15,7 @@ CURRENT_DIR = $(shell pwd)
 REAL_DIR = /opt/$(OBJ_)
 CONF_PATH = /etc/$(OBJ_).conf
 
-replica_set_verifier: $(OBJ)
+master_slave_verifier: $(OBJ)
 	gcc --std=c99 -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: install

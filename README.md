@@ -16,7 +16,7 @@ MONGO-C-DRIVER 0.8.1
 
 ####CONFIG FILE:
 
-    $ /etc/replica_set_verifier.conf 
+    $ /etc/master_slave_verifier.conf 
 
 config file example:
 
@@ -30,4 +30,4 @@ config file example:
 
 ####EXECUTE:
 
-    $ su -c "cd /opt/replica_set_verifier; ./replica_set_verifier"
+    $ su -c "cd /opt/master_slave_verifier; ./master_slave_verifier"

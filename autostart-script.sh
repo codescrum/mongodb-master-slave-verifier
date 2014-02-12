@@ -1,18 +1,18 @@
 #!/bin/sh
 
 ### BEGIN INIT INFO
-# Provides:     replica_set_verifier
+# Provides:     master_slave_verifier
 # Required-Sart: $remote_fs $syslog
 # Required-Stop: $remote_fs $syslog
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
-# Short-Description: replica_set_verifier service managment
-# Description: Start, stop, restart replica_set_verifier service.
+# Short-Description: master_slave_verifier service managment
+# Description: Start, stop, restart master_slave_verifier service.
 ### END INIT INFO
 set -e
 
-PID=/tmp/replica_set_verifier.pid
-CMD="/opt/replica_set_verifier/replica_set_verifier"
+PID=/tmp/master_slave_verifier.pid
+CMD="/opt/master_slave_verifier/master_slave_verifier"
 AS_USER=deploy
 set -u
 

@@ -1,6 +1,7 @@
 ###############################################################
 #                                                             #
-# This is a File to configure the rs mongodb verifier service #
+# This is a File to configure the master/slave                #
+# mongodb verifier service                                    #
 #                                                             #
 ###############################################################
 [NAME]
