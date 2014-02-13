@@ -20,13 +20,9 @@ MONGO-C-DRIVER 0.8.1
 
 config file example:
 
-    [NAME]
-    name=rs
-    number_of_servers=3
-    [SERVERS]
-    path=12.0.0.10:27017
-    path=12.0.0.11:27017
-    path=12.0.0.12:27017
+    [MASTER SERVER]
+    address=12.0.0.10
+    port=27017
 
 ####EXECUTE:
 
