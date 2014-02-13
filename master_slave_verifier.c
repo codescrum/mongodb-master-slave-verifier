@@ -174,7 +174,8 @@ int main(int argc, char* argv[]){
 
 
     // Trying to establish the connection
-    status = mongo_client(conn,server.address, atoi(server.port));
+    status = mongo_client(conn, server.address, atoi(server.port));
+
     fprintf(fp, "%d\n", status);
     while(status != MONGO_OK){
       switch ( conn->err ) {
